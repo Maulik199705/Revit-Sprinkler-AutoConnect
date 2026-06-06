@@ -96,16 +96,12 @@ namespace SprinklerAutoConnect
                         }
                         else
                         {
-                            // MidRunConnection — branch pipe only (tee → Phase 8)
-                            BranchCreationResult branchResult =
-                                PipeCreationService.CreateBranchPipe(
+                            // Phase 8 — MidRun: split pipe + tee + sprinkler above
+                            MidRunConnectionResult midResult =
+                                PipeSplitService.CreateMidRunConnection(
                                     doc, pipe, analysis, sprinkler);
 
-                            sb.AppendLine("══ BRANCH PIPE ══════════════════════════");
-                            sb.AppendLine($"  Id       : {branchResult.BranchPipe.Id.IntegerValue}");
-                            sb.AppendLine($"  Diameter : " +
-                                $"{UnitUtils.ConvertFromInternalUnits(branchResult.BranchPipe.Diameter, UnitTypeId.Millimeters):F1} mm");
-                            sb.AppendLine("  Note     : Tee fitting — Phase 8.");
+                            sb.Append(PipeSplitService.FormatMidRunResult(midResult));
                         }
 
                         tx.Commit();

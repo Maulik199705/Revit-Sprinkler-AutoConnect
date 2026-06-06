@@ -53,6 +53,7 @@
     <Compile Include="DiagnosticCommand.cs" />
     <Compile Include="PipeAnalysisService.cs" />
     <Compile Include="PipeCreationService.cs" />
+    <Compile Include="PipeSplitService.cs" />
     <Compile Include="StrategyService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

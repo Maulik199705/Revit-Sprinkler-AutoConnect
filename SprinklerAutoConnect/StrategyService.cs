@@ -55,8 +55,13 @@ namespace SprinklerAutoConnect
     /// </summary>
     public static class StrategyService
     {
-        /// <summary>Default end-tolerance: 150 mm — typical for field placement.</summary>
-        public const double DefaultToleranceMm = 150.0;
+        /// <summary>
+        /// End-tolerance: 10 mm — GOLDEN RULE.
+        /// Only use EndConnection (elbow at pipe end) when the sprinkler
+        /// centreline projects within 10 mm of a pipe end point.
+        /// Everything else is MidRunConnection (tee/tap out).
+        /// </summary>
+        public const double DefaultToleranceMm = 10.0;
 
         // ── Public API ────────────────────────────────────────────────────────
 
