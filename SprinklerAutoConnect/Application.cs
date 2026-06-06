@@ -4,37 +4,43 @@ using System.Reflection;
 
 namespace SprinklerAutoConnect
 {
-    /// <summary>
-    /// IExternalApplication — runs on Revit startup.
-    /// Adds the "Fire Protection Tools" ribbon tab and "Sprinkler Auto Connect" button.
-    /// </summary>
     public class App : IExternalApplication
     {
-        private const string TabName    = "Fire Protection Tools";
-        private const string PanelName  = "Sprinkler Tools";
-        private const string ButtonName = "Sprinkler Auto Connect";
+        private const string TabName   = "Fire Protection Tools";
+        private const string PanelName = "Sprinkler Tools";
 
         public Result OnStartup(UIControlledApplication app)
         {
             try
             {
-                // Create ribbon tab
                 app.CreateRibbonTab(TabName);
+                RibbonPanel panel       = app.CreateRibbonPanel(TabName, PanelName);
+                string      assembly    = Assembly.GetExecutingAssembly().Location;
 
-                // Create panel inside that tab
-                RibbonPanel panel = app.CreateRibbonPanel(TabName, PanelName);
+                // ── Main connect button ───────────────────────────────────────
+                PushButtonData connectBtn = new PushButtonData(
+                    "SprinklerAutoConnectBtn",
+                    "Sprinkler\nAuto Connect",
+                    assembly,
+                    "SprinklerAutoConnect.SprinklerAutoConnectCommand")
+                {
+                    ToolTip = "Connect a sprinkler to the nearest pipe end automatically."
+                };
 
-                // Push-button data
-                string assemblyPath = Assembly.GetExecutingAssembly().Location;
-                PushButtonData buttonData = new PushButtonData(
-                    name:       "SprinklerAutoConnectBtn",
-                    text:       ButtonName,
-                    assemblyName: assemblyPath,
-                    className:  "SprinklerAutoConnect.SprinklerAutoConnectCommand"
-                );
-                buttonData.ToolTip = "Automatically connects sprinkler heads to the nearest pipe.";
+                // ── Diagnostic button ─────────────────────────────────────────
+                PushButtonData diagBtn = new PushButtonData(
+                    "SprinklerDiagnoseBtn",
+                    "Diagnose\nConnection",
+                    assembly,
+                    "SprinklerAutoConnect.DiagnosticCommand")
+                {
+                    ToolTip = "Inspect pipe type, routing preferences, and fitting families. " +
+                              "Run this first if Auto Connect fails."
+                };
 
-                panel.AddItem(buttonData);
+                panel.AddItem(connectBtn);
+                panel.AddSeparator();
+                panel.AddItem(diagBtn);
 
                 return Result.Succeeded;
             }
@@ -45,9 +51,6 @@ namespace SprinklerAutoConnect
             }
         }
 
-        public Result OnShutdown(UIControlledApplication app)
-        {
-            return Result.Succeeded;
-        }
+        public Result OnShutdown(UIControlledApplication app) => Result.Succeeded;
     }
 }

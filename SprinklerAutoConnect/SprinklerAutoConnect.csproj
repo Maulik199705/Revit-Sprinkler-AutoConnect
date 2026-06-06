@@ -35,13 +35,12 @@
   <ItemGroup>
     <!-- Revit 2024 API references — adjust path if Revit is installed elsewhere -->
     <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2024\RevitAPI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
-    </Reference>
-    <Reference Include="RevitUIAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitUIAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2024\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Windows.Forms" />
@@ -49,8 +48,11 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="ConnectionGeometryService.cs" />
     <Compile Include="ConnectorService.cs" />
+    <Compile Include="DiagnosticCommand.cs" />
     <Compile Include="PipeAnalysisService.cs" />
+    <Compile Include="PipeCreationService.cs" />
     <Compile Include="StrategyService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
