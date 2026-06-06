@@ -40,8 +40,18 @@ namespace SprinklerAutoConnect
                 ElementId systemTypeId = GetPipeSystemTypeId(mainPipe);
                 double spkDiamFt = GetSprinklerConnectorDiameterFt(sprinkler);
 
-                // Create a temporary 2-foot branch pipe pointing purely UP
-                XYZ branchEnd = tapPoint + XYZ.BasisZ.Multiply(2.0);
+                // FIX: Calculate the upward direction that is strictly PERPENDICULAR to the sloped pipe.
+                // This ensures the Tap is placed at a perfect 90-degree angle to the pipe axis, 
+                // allowing the sprinkler to tilt and match the pipe's slope.
+                XYZ pipeAxis = analysis.PipeDirection;
+                XYZ worldUp = XYZ.BasisZ;
+                XYZ upPerp = worldUp - pipeAxis.Multiply(worldUp.DotProduct(pipeAxis));
+
+                XYZ branchDir = (upPerp.GetLength() > 1e-4) ? upPerp.Normalize() : BestPerpendicularTo(pipeAxis);
+                if (branchDir.Z < 0) branchDir = branchDir.Negate();
+
+                // Create a temporary 2-foot branch pipe pointing perpendicular to the pipe
+                XYZ branchEnd = tapPoint + branchDir.Multiply(2.0);
                 Pipe tempPipe = Pipe.Create(doc, systemTypeId, pipeTypeId, levelId, tapPoint, branchEnd);
 
                 // Set branch pipe to sprinkler diameter so the tap sizes itself correctly
@@ -63,7 +73,6 @@ namespace SprinklerAutoConnect
                     throw new InvalidOperationException("Could not locate start connector on the temporary branch pipe.");
 
                 // ── 2. Create the Tap (Takeoff) directly on the main pipe ──────
-                // This builds a Tap on the surface without breaking/splitting mainPipe.
                 FamilyInstance tap = doc.Create.NewTakeoffFitting(tempStartConn, mainPipe);
 
                 if (tap == null)
@@ -71,7 +80,6 @@ namespace SprinklerAutoConnect
                         "NewTakeoffFitting failed. Ensure routing preferences support Tap/Spud fittings for Junctions.");
 
                 // ── 3. Delete the temporary pipe ───────────────────────────────
-                // Removing it leaves the Tap perfectly intact with an open branch connector.
                 doc.Delete(tempPipe.Id);
 
                 // ── 4. Locate the Tap's open branch connector ──────────────────
@@ -89,7 +97,8 @@ namespace SprinklerAutoConnect
                 XYZ branchFacing = branchConn.CoordinateSystem.BasisZ.Normalize();
                 XYZ currentFacing = spkConn.CoordinateSystem.BasisZ.Normalize();
 
-                // Because branch is facing UP, the Sprinkler must face DOWN 
+                // Because branch is facing OUT/UP perpendicular to the slope, 
+                // the Sprinkler must face OPPOSITE to lock in perfectly parallel to the slope.
                 RotateFacingTo(doc, sprinkler, currentFacing, branchFacing.Negate(), branchConn.Origin);
 
                 // ── 7. Lock the MEP network logically ──────────────────────────
@@ -126,6 +135,15 @@ namespace SprinklerAutoConnect
         }
 
         // ── Shared connector & system helpers ─────────────────────────────────
+
+        private static XYZ BestPerpendicularTo(XYZ v)
+        {
+            v = v.Normalize();
+            XYZ candidate = (Math.Abs(v.DotProduct(XYZ.BasisZ)) < 0.99) ? XYZ.BasisZ : XYZ.BasisX;
+            XYZ perp = v.CrossProduct(candidate);
+            if (perp.GetLength() < 1e-9) perp = v.CrossProduct(XYZ.BasisY);
+            return perp.Normalize();
+        }
 
         private static Connector GetTapBranchConnector(FamilyInstance tap, XYZ pipeAxis)
         {
